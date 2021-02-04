@@ -1,6 +1,6 @@
 use crate::chain::Block;
 
-use bitcoin::{BitcoinHash, BlockHash};
+use bitcoin::{BlockHash};
 use rayon::prelude::*;
 
 #[cfg(not(feature = "liquid"))]

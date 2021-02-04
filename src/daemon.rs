@@ -7,7 +7,6 @@ use std::time::Duration;
 
 use base64;
 use bitcoin::hashes::hex::{FromHex, ToHex};
-use bitcoin::util::hash::BitcoinHash;
 use bitcoin::{BlockHash, Txid};
 use glob;
 use hex;

@@ -12,7 +12,6 @@ pub use {
 
 use bitcoin::blockdata::constants::genesis_block;
 use bitcoin::network::constants::Network as BNetwork;
-use bitcoin::util::hash::BitcoinHash;
 use bitcoin::BlockHash;
 
 use std::collections::HashMap;
