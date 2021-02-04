@@ -21,18 +21,13 @@ pub fn heavy_hash(block: &BlockHeader) -> BlockHash {
     block.consensus_encode(&mut input);
 
     let mut hash = heavy_hash_internal(input, matrix);
-    println!("Hash: {}", hash.to_hex());
-    println!("Hash reversed: {}", hash.to_hex());
     BlockHash::from_slice(&hash).unwrap()
 }
 
 fn heavy_hash_internal(input: Vec<u8>, seed: MatrixMN<i32, U64, U64>) -> [u8; 32] {
-    println!("Matrix: {:?}", seed);
-    println!("Input bytes: {:?}", input);
     let mut sha_1 = Sha3_256::new();
     sha_1.update(input.as_slice());
     let mut hash1 = sha_1.finalize();
-    println!("Hash1[32] {:?}", <[u8; 32]>::from(hash1));
 
     let mut x = hash1.iter()
         .fold(Vec::new(), |mut acc: Vec<i32>, b| {
@@ -40,7 +35,6 @@ fn heavy_hash_internal(input: Vec<u8>, seed: MatrixMN<i32, U64, U64>) -> [u8; 32
             acc.push((*b as i32) & 0x0F);
             acc
         });
-    println!("x[64] {:?}", x);
 
     let xMatrix: MatrixMN<i32, U64, U1> = VectorN::<i32, U64>::from_vec(x);
     // TRANSPOSE ???
@@ -48,12 +42,10 @@ fn heavy_hash_internal(input: Vec<u8>, seed: MatrixMN<i32, U64, U64>) -> [u8; 32
     let matrixMul = seed * xMatrix;
     let y: &[i32] = matrixMul.as_slice();
 
-    println!("y[64] {:?}", y);
 
     let truncated = y.iter()
         .map(|b| b >> 10)
         .collect_vec();
-    println!("truncated[64] {:?}", truncated);
 
     let mut preout: Vec<u8> = Vec::new();
     for i in 0..(truncated.len() / 2) {
@@ -66,7 +58,6 @@ fn heavy_hash_internal(input: Vec<u8>, seed: MatrixMN<i32, U64, U64>) -> [u8; 32
     }
     // preout.reverse();
 
-    println!("preout[32] {}", preout.to_hex());
 
     let mut sha_2 = Sha3_256::new();
     sha_2.update(preout.as_slice());
@@ -74,7 +65,6 @@ fn heavy_hash_internal(input: Vec<u8>, seed: MatrixMN<i32, U64, U64>) -> [u8; 32
 }
 
 fn generateHeavyHashMatrix(seed: [u8; 32]) -> MatrixMN<i32, U64, U64> {
-    println!("Heavyhash matrix seed: {:?}", seed);
     let mut generator = Xoshiro256PlusPlus::from_seed(seed);
 
     loop {
@@ -83,7 +73,6 @@ fn generateHeavyHashMatrix(seed: [u8; 32]) -> MatrixMN<i32, U64, U64> {
         for i in 0..64 {
             for j in (0..64).step_by(16) {
                 let value = generator.next_u64();
-                println!("Generated value: {}", value);
                 for shift in 0..16 {
                     *matrix.index_mut((i, j + shift)) = ((value >> (4 * shift)) & 0xF) as i32;
                 }
@@ -93,7 +82,6 @@ fn generateHeavyHashMatrix(seed: [u8; 32]) -> MatrixMN<i32, U64, U64> {
         if is4BitPrecision(&matrix) && isFullRank(&matrix) {
             return matrix;
         }
-        println!("Matrix Missed! Try again");
     }
 }
 
