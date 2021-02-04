@@ -18,6 +18,7 @@ use std::thread;
 use crate::daemon::Daemon;
 use crate::errors::*;
 use crate::util::{spawn_thread, HeaderEntry, SyncChannel};
+use crate::util::heavyhash::heavy_hash;
 
 #[derive(Clone, Copy, Debug)]
 pub enum FetchFrom {
@@ -80,7 +81,7 @@ fn bitcoind_fetcher(
         chan.into_receiver(),
         spawn_thread("bitcoind_fetcher", move || {
             for entries in new_headers.chunks(100) {
-                let blockhashes: Vec<BlockHash> = entries.iter().map(|e| *e.hash()).collect();
+                let blockhashes: Vec<BlockHash> = entries.iter().map(|e| heavy_hash(e.header())).collect();
                 let blocks = daemon
                     .getblocks(&blockhashes)
                     .expect("failed to get blocks from bitcoind");
@@ -124,7 +125,7 @@ fn blkfiles_fetcher(
                 let block_entries: Vec<BlockEntry> = sizedblocks
                     .into_iter()
                     .filter_map(|(block, size)| {
-                        let blockhash = block.bitcoin_hash();
+                        let blockhash = heavy_hash(&block.header);
                         entry_map
                             .remove(&blockhash)
                             .map(|entry| BlockEntry { block, entry, size })
