@@ -2,13 +2,14 @@ use crate::chain::BlockHeader;
 use crate::errors::*;
 use crate::new_index::BlockEntry;
 
-use bitcoin::{BitcoinHash, BlockHash};
+use bitcoin::BlockHash;
 
 use std::collections::HashMap;
 use std::fmt;
 use std::iter::FromIterator;
 use std::slice;
 use time::OffsetDateTime as DateTime;
+use crate::util::heavyhash::heavy_hash;
 
 const MTP_SPAN: usize = 11;
 
@@ -97,7 +98,7 @@ impl HeaderList {
                 panic!(
                     "missing expected blockhash in headers map: {:?}, pointed from: {:?}",
                     blockhash,
-                    headers_chain.last().map(|h| h.bitcoin_hash())
+                    headers_chain.last().map(|h| heavy_hash(h))
                 )
             });
             blockhash = header.prev_blockhash;
@@ -124,7 +125,7 @@ impl HeaderList {
         }
         let hashed_headers =
             Vec::<HashedHeader>::from_iter(new_headers.into_iter().map(|header| HashedHeader {
-                blockhash: header.bitcoin_hash(),
+                blockhash: heavy_hash(&header),
                 header,
             }));
         for i in 1..hashed_headers.len() {

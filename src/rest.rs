@@ -12,7 +12,7 @@ use crate::util::{
 use bitcoin::consensus::encode;
 use bitcoin::hashes::hex::{FromHex, ToHex};
 use bitcoin::hashes::Error as HashError;
-use bitcoin::{BitcoinHash, BlockHash, Script, Txid};
+use bitcoin::{BlockHash, Script, Txid};
 use hex::{self, FromHexError};
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Method, Response, Server, StatusCode};
@@ -38,6 +38,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::thread;
 use url::form_urlencoded;
+use crate::util::heavyhash::heavy_hash;
 
 const CHAIN_TXS_PER_PAGE: usize = 25;
 const MAX_MEMPOOL_TXS: usize = 50;
@@ -84,7 +85,7 @@ impl BlockValue {
     fn new(blockhm: BlockHeaderMeta, network: Network) -> Self {
         let header = blockhm.header_entry.header();
         BlockValue {
-            id: header.bitcoin_hash().to_hex(),
+            id: heavy_hash(header).to_hex(),
             height: blockhm.header_entry.height() as u32,
             version: header.version,
             timestamp: header.time,
@@ -959,7 +960,7 @@ fn handle_request(
 
             let height = query
                 .chain()
-                .height_by_hash(&merkleblock.header.bitcoin_hash());
+                .height_by_hash(&heavy_hash(&merkleblock.header));
 
             http_message(
                 StatusCode::OK,

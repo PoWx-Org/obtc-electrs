@@ -7,11 +7,11 @@ use std::time::Duration;
 
 use base64;
 use bitcoin::hashes::hex::{FromHex, ToHex};
-use bitcoin::util::hash::BitcoinHash;
 use bitcoin::{BlockHash, Txid};
 use glob;
 use hex;
 use serde_json::{from_str, from_value, Value};
+use crate::util::heavyhash::heavy_hash;
 
 #[cfg(not(feature = "liquid"))]
 use bitcoin::consensus::encode::{deserialize, serialize};
@@ -461,7 +461,7 @@ impl Daemon {
         let block = block_from_value(
             self.request("getblock", json!([blockhash.to_hex(), /*verbose=*/ false]))?,
         )?;
-        assert_eq!(block.bitcoin_hash(), *blockhash);
+        assert_eq!(heavy_hash(&block.header), *blockhash);
         Ok(block)
     }
 
@@ -588,7 +588,7 @@ impl Daemon {
         let mut blockhash = BlockHash::default();
         for header in &result {
             assert_eq!(header.prev_blockhash, blockhash);
-            blockhash = header.bitcoin_hash();
+            blockhash = heavy_hash(header);
         }
         assert_eq!(blockhash, *tip);
         Ok(result)

@@ -4,6 +4,7 @@ mod transaction;
 
 pub mod electrum_merkle;
 pub mod fees;
+pub(crate) mod heavyhash;
 
 pub use self::block::{BlockHeaderMeta, BlockId, BlockMeta, BlockStatus, HeaderEntry, HeaderList};
 pub use self::fees::get_tx_fee;

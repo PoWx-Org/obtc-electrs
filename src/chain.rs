@@ -12,7 +12,6 @@ pub use {
 
 use bitcoin::blockdata::constants::genesis_block;
 use bitcoin::network::constants::Network as BNetwork;
-use bitcoin::util::hash::BitcoinHash;
 use bitcoin::BlockHash;
 
 use std::collections::HashMap;
@@ -22,6 +21,7 @@ use std::sync::{Arc, RwLock};
 pub type Value = u64;
 #[cfg(feature = "liquid")]
 pub use confidential::Value;
+use crate::util::heavyhash::heavy_hash;
 
 lazy_static! {
     static ref CACHED_GENESIS: Arc<RwLock<HashMap<Network, BlockHash>>> =
@@ -46,7 +46,7 @@ impl Network {
             return *block_hash;
         }
 
-        let block_hash = genesis_block(BNetwork::from(self)).bitcoin_hash();
+        let block_hash = heavy_hash(&genesis_block(BNetwork::from(self)).header);
         CACHED_GENESIS.write().unwrap().insert(self, block_hash);
         block_hash
     }
