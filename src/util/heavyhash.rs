@@ -101,6 +101,6 @@ fn is_full_rank(matrix: &MatrixMN<i32, U64, U64>) -> bool {
     let fs = mslice.iter().map(|i| *i as f64).collect_vec();
     let fm = MatrixMN::<f64, U64, U64>::from_vec(fs);
 
-    let rank = fm.rank(0.0001);
+    let rank = fm.rank(1e-9);
     rank == 64
 }
